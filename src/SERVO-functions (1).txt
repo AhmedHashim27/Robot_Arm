@@ -1,0 +1,74 @@
+// =================================== move robot to position
+void  servomove(int li,int sk){ // move the robot in the target position. 
+// Setting  of the function ====================
+//     li : number of stored sequence of  robot (example: sequence = 3 will point to address li*6+2 of eeprom)
+//     sk  : if sk = 0 the arm rise before the programmed move
+// End setting of the function  ================  
+delay(200);  // to be sure last move finished
+int bb =  75,cc = 110;
+int ind0=1, ind1=1, ind2, ind3, ind4, ind5 ;
+if (sk == 1) {ind1  = 0; ind2 = 0;}
+while (ind1+ind2 >0)
+  {
+  if (tabserpos[1] != bb) { ind1  = 1;
+    if (tabserpos[1] < bb) { tabserpos[1] = tabserpos[1]+1; } if (tabserpos[1]  > bb) { tabserpos[1] = tabserpos[1]-1;  } servowrite(1, tabserpos[1]); }
+    else  { ind1 = 0 ;} 
+  if (tabserpos[2] != cc) { ind2 = 1; 
+    if (tabserpos[2]  < cc) { tabserpos[2] = tabserpos[2]+1; } if (tabserpos[2] > cc) { tabserpos[2] =  tabserpos[2]-1;  } servowrite(2, tabserpos[2]); }
+    else { ind2 = 0 ;} 
+  } // end while (ind1+ind2 >0)
+
+if (li > epractmax[1]) { li = epractmax[1]  ; } 
+readeeprom((li*6 + 2),6) ; // in return the eprdata table contains the target  positions of the servos
+ind0 = 1;
+while (ind0+ind3+ind4+ind5 >0)
+  {
+  if (tabserpos[0] != eprdata[0]) { ind0 = 1; 
+    if (tabserpos[0] < eprdata[0])  { tabserpos[0] = tabserpos[0]+1;  } if (tabserpos[0] > eprdata[0]) { tabserpos[0]  = tabserpos[0]-1; } servowrite(0, tabserpos[0]) ; } 
+    else { ind0 = 0 ;}
+  if (tabserpos[3] != eprdata[3]) { ind3 = 1; 
+    if (tabserpos[3] > eprdata[3])  { tabserpos[3] = tabserpos[3]-1;  } if (tabserpos[3] < eprdata[3]) { tabserpos[3]  = tabserpos[3]+1; } servowrite(3, tabserpos[3]) ; } 
+    else { ind3 = 0 ;} 
+  if (tabserpos[4] != eprdata[4]) { ind4 = 1;  
+    if (tabserpos[4] < eprdata[4])  { tabserpos[4] = tabserpos[4]+1;  } if (tabserpos[4] > eprdata[4]) { tabserpos[4]  = tabserpos[4]-1; } servowrite(4, tabserpos[4]) ; } 
+    else { ind4 = 0 ;}
+  }
+ind1 = 1;
+while (ind1+ind2 >0)
+  {
+  if (tabserpos[1] != eprdata[1])  { ind1 = 1; 
+    if (tabserpos[1] < eprdata[1]) { tabserpos[1] = tabserpos[1]+1;  } if (tabserpos[1] > eprdata[1]) { tabserpos[1] = tabserpos[1]-1; } servowrite(1,  tabserpos[1]) ; } 
+    else { ind1 = 0 ;} 
+  if (tabserpos[2] != eprdata[2])  { ind2 = 1; 
+    if (tabserpos[2] < eprdata[2]) { tabserpos[2] = tabserpos[2]+1;  } if (tabserpos[2] > eprdata[2]) { tabserpos[2] = tabserpos[2]-1; } servowrite(2,  tabserpos[2]) ; } 
+    else { ind2 = 0 ;} 
+  }
+ind5 = 1;
+while (ind5  >0)
+  {
+  if (tabserpos[5] != eprdata[5]) { ind5 = 1; 
+    if (tabserpos[5]  < eprdata[5]) { tabserpos[5] = tabserpos[5]+1;  } if (tabserpos[5] > eprdata[5])  { tabserpos[5] = tabserpos[5]-1; } servowrite(5, tabserpos[5]) ; } 
+    else  { ind5 = 0 ;} 
+  }
+listpos();     
+}
+// ==================================
+void  servowrite(int sernum, int angl)  // move servo to new position
+{
+ int imp  = map(angl, MIN_ANG[sernum], MAX_ANG[sernum], MIN_IMP[sernum], MAX_IMP[sernum]);  // convert angle to impulse
+ pca.writeMicroseconds(sernum,imp); 
+ delay(servodelay);
+  tabserpos[sernum] = angl;
+}
+// =================================== list the  position of the servos
+void listpos(){
+ 
+String  aff = String(tabserpos[0])  + " " + String(tabserpos[1]) + " " + String(tabserpos[2]) + " " + String(tabserpos[3]);
+String  aff1 = String(tabserpos[4]) + " " + String(tabserpos[5]) + " > " + String (epractmax[0])  + "-" + String (epractmax[1]);
+if (lcdpres == 1) {lcdw(2,0,0,""); lcdw(1,0,0,aff);  lcdw(1,1,0,aff1); }
+Serial.println(aff + " " + aff1);
+}
+void scenario  ()
+{
+  for (int i=0;i<10;i++) {servomove(prog[0][i],prog[1][i]); }
+}
